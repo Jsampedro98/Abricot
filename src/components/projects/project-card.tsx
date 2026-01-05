@@ -60,14 +60,17 @@ export function ProjectCard({ project }: ProjectCardProps) {
                      </span>
                  </div>
                  
-                 <div className="flex items-center -space-x-2">
-                     <div className="h-8 w-8 rounded-full bg-[#F3F4F6] flex items-center justify-center border-2 border-white shadow-sm">
-                        <span className="text-xs font-bold text-gray-700">BC</span>
+                 {project.members && project.members.length > 0 && (
+                     <div className="flex items-center -space-x-2">
+                        {project.members.slice(0, 3).map((member, i) => (
+                             <div key={i} className="h-8 w-8 rounded-full bg-[#F3F4F6] flex items-center justify-center border-2 border-white shadow-sm">
+                                <span className="text-xs font-bold text-gray-700">
+                                    {member.user.name?.substring(0, 2).toUpperCase() || "??"}
+                                </span>
+                             </div>
+                        ))}
                      </div>
-                     <div className="h-8 w-8 rounded-full bg-[#F3F4F6] flex items-center justify-center border-2 border-white shadow-sm">
-                        <span className="text-xs font-bold text-gray-700">CV</span>
-                     </div>
-                 </div>
+                 )}
             </div>
         </div>
       </div>

@@ -9,12 +9,24 @@ import { Project } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProjectCard } from "@/components/projects/project-card";
+import { CreateProjectModal } from "@/components/projects/create-project-modal";
 
 export default function ProjectsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const fetchProjects = () => {
+    if (user) {
+        setIsDataLoading(true);
+        authService.getProjects()
+          .then(setProjects)
+          .catch(console.error)
+          .finally(() => setIsDataLoading(false));
+      }
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -23,13 +35,7 @@ export default function ProjectsPage() {
   }, [isLoading, user, router]);
 
   useEffect(() => {
-    if (user) {
-      setIsDataLoading(true);
-      authService.getProjects()
-        .then(setProjects)
-        .catch(console.error)
-        .finally(() => setIsDataLoading(false));
-    }
+    fetchProjects();
   }, [user]);
 
   if (isLoading || !user) {
@@ -45,7 +51,7 @@ export default function ProjectsPage() {
                <h2 className="text-2xl font-bold tracking-tight mb-1">Mes projets</h2>
                <p className="text-muted-foreground">Gérez vos projets</p>
            </div>
-           <Button className="bg-[#1A1A1A] hover:bg-[#333] text-white">
+           <Button onClick={() => setIsCreateModalOpen(true)} className="bg-[#1A1A1A] hover:bg-[#333] text-white">
              <Plus className="mr-2 h-4 w-4" /> Créer un projet
            </Button>
         </div>
@@ -57,7 +63,7 @@ export default function ProjectsPage() {
             <div className="text-center py-12 rounded-xl border border-dashed border-border/60 bg-gray-50/50">
                 <h3 className="test-lg font-medium mb-2">Aucun projet trouvé</h3>
                 <p className="text-sm text-muted-foreground mb-6">Commencez par créer votre premier projet pour collaborer.</p>
-                <Button className="bg-[#1A1A1A] hover:bg-[#333] text-white">
+                <Button onClick={() => setIsCreateModalOpen(true)} className="bg-[#1A1A1A] hover:bg-[#333] text-white">
                     <Plus className="mr-2 h-4 w-4" /> Créer un projet
                 </Button>
             </div>
@@ -69,6 +75,12 @@ export default function ProjectsPage() {
             </div>
         )}
       </div>
+
+      <CreateProjectModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={fetchProjects}
+      />
     </DashboardLayout>
   );
 }

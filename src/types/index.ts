@@ -7,6 +7,11 @@ export interface UserShort {
     email: string;
 }
 
+export interface ProjectMember {
+    user: UserShort;
+    role: string;
+}
+
 export interface Project {
     id: string;
     name: string;
@@ -19,10 +24,7 @@ export interface Project {
         tasks: number;
         members?: number;
     };
-    members?: {
-        user: UserShort;
-        role: string;
-    }[];
+    members?: ProjectMember[];
 }
 
 export interface Comment {

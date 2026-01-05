@@ -84,12 +84,72 @@ class AuthService {
         return response.project;
     }
 
-    async createProject(data: { name: string; description?: string }): Promise<Project> {
+    async createProject(data: { name: string; description?: string; contributors?: string[] }): Promise<Project> {
         const response = await this.request<{ project: Project }>('/projects', {
             method: 'POST',
             body: JSON.stringify(data),
         });
         return response.project;
+    }
+
+    async updateProject(id: string, data: { name?: string; description?: string }): Promise<Project> {
+        const response = await this.request<{ project: Project }>(`/projects/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        return response.project;
+    }
+
+    async deleteProject(id: string): Promise<void> {
+        await this.request(`/projects/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async addContributor(projectId: string, email: string): Promise<void> {
+        await this.request(`/projects/${projectId}/contributors`, {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        });
+    }
+
+    async removeContributor(projectId: string, userId: string): Promise<void> {
+        await this.request(`/projects/${projectId}/contributors/${userId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async searchUsers(query: string): Promise<User[]> {
+        const response = await this.request<{ users: User[] }>(`/users/search?query=${encodeURIComponent(query)}`);
+        return response.users || [];
+    }
+
+    async createTask(projectId: string, data: { title: string; description?: string; priority?: string; dueDate?: string; assigneeIds?: string[]; status?: string }): Promise<Task> {
+        const response = await this.request<{ task: Task }>(`/projects/${projectId}/tasks`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return response.task;
+    }
+
+    async updateTask(projectId: string, taskId: string, data: { title?: string; description?: string; status?: string; priority?: string; dueDate?: string; assigneeIds?: string[] }): Promise<Task> {
+        console.log('Update task', projectId, taskId, data);
+        const response = await this.request<{ task: Task }>(`/projects/${projectId}/tasks/${taskId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        return response.task;
+    }
+
+    async getProjectTasks(projectId: string): Promise<Task[]> {
+        const response = await this.request<{ tasks: Task[] }>(`/projects/${projectId}/tasks`);
+        return response.tasks;
+    }
+
+    async deleteTask(projectId: string, taskId: string): Promise<void> {
+        await this.request(`/projects/${projectId}/tasks/${taskId}`, {
+            method: 'DELETE',
+        });
     }
 }
 

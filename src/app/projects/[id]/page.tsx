@@ -7,10 +7,14 @@ import { useParams, useRouter } from "next/navigation";
 import { authService } from "@/services/api";
 import { Project, Task } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles, Plus, MoreHorizontal, ChevronDown, ChevronUp, Search, Calendar as CalendarIcon, CheckSquare } from "lucide-react";
+import { ArrowLeft, Sparkles, Plus, ChevronDown, Search, Calendar as CalendarIcon, CheckSquare } from "lucide-react";
 import Link from "next/link";
 import { ProjectTaskCard } from "@/components/projects/project-task-card";
 import { Input } from "@/components/ui/input";
+import { EditTaskModal } from "@/components/tasks/edit-task-modal";
+import { CreateTaskModal } from "@/components/tasks/create-task-modal";
+import { EditProjectModal } from "@/components/projects/edit-project-modal";
+import { AICreateTaskModal } from "@/components/tasks/ai-create-task-modal";
 
 export default function ProjectDetailsPage() {
   const { user, isLoading } = useAuth();
@@ -22,6 +26,10 @@ export default function ProjectDetailsPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"list" | "calendar">("list");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -29,21 +37,23 @@ export default function ProjectDetailsPage() {
     }
   }, [isLoading, user, router]);
 
-  useEffect(() => {
+  const fetchProjectData = () => {
     if (user && projectId) {
-      setIsDataLoading(true);
-      // Fetch project details and tasks
       Promise.all([
           authService.getProject(projectId),
-          authService.getAssignedTasks()
+          authService.getProjectTasks(projectId)
       ])
       .then(([projectData, tasksData]) => {
           setProject(projectData);
-          setTasks(tasksData.filter(t => t.projectId === projectId)); 
+          setTasks(tasksData); 
       })
       .catch(console.error)
       .finally(() => setIsDataLoading(false));
     }
+  };
+
+  useEffect(() => {
+      fetchProjectData();
   }, [user, projectId]);
 
   if (isLoading || !user || isDataLoading) {
@@ -57,7 +67,7 @@ export default function ProjectDetailsPage() {
   return (
     <DashboardLayout title={project.name}>
       <div className="space-y-6">
-        {/* Header Content with Back Button */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
            <div className="flex items-start gap-4">
                <Link href="/projects" className="mt-1">
@@ -68,22 +78,27 @@ export default function ProjectDetailsPage() {
                <div>
                    <div className="flex items-center gap-3 mb-2">
                         <h2 className="text-2xl font-bold tracking-tight">{project.name}</h2>
-                        <span className="text-sm font-medium text-[#D95F18] cursor-pointer hover:underline">Modifier</span>
+                        <span 
+                            onClick={() => setIsEditModalOpen(true)}
+                            className="text-sm font-medium text-[#D95F18] cursor-pointer hover:underline"
+                        >
+                            Modifier
+                        </span>
                    </div>
                    <p className="text-muted-foreground">{project.description || "Aucune description"}</p>
                </div>
            </div>
            <div className="flex items-center gap-3">
-               <Button className="bg-[#1A1A1A] hover:bg-[#333] text-white">
+               <Button onClick={() => setIsCreateTaskModalOpen(true)} className="bg-[#1A1A1A] hover:bg-[#333] text-white cursor-pointer">
                  <Plus className="mr-2 h-4 w-4" /> Créer une tâche
                </Button>
-               <Button className="bg-[#D95F18] hover:bg-[#D95F18]/90 text-white">
+               <Button onClick={() => setIsAIModalOpen(true)} className="bg-[#D95F18] hover:bg-[#D95F18]/90 text-white cursor-pointer">
                  <Sparkles className="mr-2 h-4 w-4" /> IA
                </Button>
            </div>
         </div>
 
-        {/* Contributors Bar */}
+        {/* Contributors */}
         <div className="bg-[#f3f4f6] border border-transparent rounded-lg p-3 flex items-center gap-4">
             <span className="text-sm font-medium text-foreground">Contributeurs</span>
             <span className="text-sm text-muted-foreground">{project.members?.length || 0} personnes</span>
@@ -99,22 +114,19 @@ export default function ProjectDetailsPage() {
                         </span>
                     </div>
                  )}
-                 <div className="flex items-center gap-2">
-                     <div className="h-6 w-6 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-700">BD</div>
-                     <span className="bg-gray-100 px-2.5 py-0.5 rounded-full text-xs text-gray-600 border border-gray-200">
-                        Bertrand Dupont
-                     </span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                     <div className="h-6 w-6 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-700">AD</div>
-                     <span className="bg-gray-100 px-2.5 py-0.5 rounded-full text-xs text-gray-600 border border-gray-200">
-                        Anne Dupont
-                     </span>
-                 </div>
+                 {project.members?.map((member, i) => (
+                     <div key={i} className="flex items-center gap-2">
+                         <div className="h-6 w-6 rounded bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-700">
+                            {member.user.name?.substring(0, 2).toUpperCase()}
+                         </div>
+                         <span className="bg-gray-100 px-2.5 py-0.5 rounded-full text-xs text-gray-600 border border-gray-200">
+                            {member.user.name || member.user.email}
+                         </span>
+                     </div>
+                 ))}
             </div>
         </div>
 
-        {/* Content Tabs & Filters - WRAPPED IN WHITE CARD */}
          <div className="bg-white p-8 rounded-xl border border-border/60 shadow-sm space-y-8">
                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
@@ -156,7 +168,9 @@ export default function ProjectDetailsPage() {
                  <div className="space-y-4">
                     {tasks.length > 0 ? (
                         tasks.map(task => (
-                             <ProjectTaskCard key={task.id} task={task} />
+                             <div key={task.id} onClick={() => setEditingTask(task)} className="cursor-pointer transition-transform hover:scale-[1.01]">
+                                <ProjectTaskCard task={task} />
+                             </div>
                         ))
                     ) : (
                         <div className="text-center py-12 text-neutral-500 text-sm">
@@ -167,6 +181,41 @@ export default function ProjectDetailsPage() {
         </div>
 
       </div>
+      
+      <CreateTaskModal 
+        isOpen={isCreateTaskModalOpen}
+        onClose={() => setIsCreateTaskModalOpen(false)}
+        onSuccess={fetchProjectData}
+        projectId={projectId}
+        projectMembers={project?.members || []}
+      />
+      
+      {project && (
+        <EditProjectModal 
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            project={project}
+            onSuccess={fetchProjectData}
+        />
+      )}
+
+      {editingTask && project && (
+          <EditTaskModal 
+            isOpen={!!editingTask}
+            onClose={() => setEditingTask(null)}
+            task={editingTask}
+            projectId={projectId}
+            projectMembers={project.members || []}
+            onSuccess={fetchProjectData}
+          />
+      )}
+
+      <AICreateTaskModal 
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        projectId={projectId}
+        onSuccess={fetchProjectData}
+      />
     </DashboardLayout>
   );
 }

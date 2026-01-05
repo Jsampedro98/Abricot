@@ -10,9 +10,10 @@ import { fr } from "date-fns/locale";
 interface TaskCardProps {
   task: Task;
   view: "list" | "kanban";
+  onView?: () => void;
 }
 
-export function TaskCard({ task, view }: TaskCardProps) {
+export function TaskCard({ task, view, onView }: TaskCardProps) {
   const statusColors: Record<string, string> = {
     TODO: "bg-pink-100 text-pink-700 hover:bg-pink-200",
     IN_PROGRESS: "bg-orange-100 text-orange-700 hover:bg-orange-200",
@@ -56,7 +57,7 @@ export function TaskCard({ task, view }: TaskCardProps) {
                  </div>
              </div>
 
-            <Button variant="secondary" className="bg-[#1A1A1A] text-white hover:bg-[#333] h-9 px-6 text-sm font-medium rounded-md">
+            <Button onClick={onView} variant="secondary" className="bg-[#1A1A1A] text-white hover:bg-[#333] h-9 px-6 text-sm font-medium rounded-md cursor-pointer">
                 Voir
             </Button>
         </div>
@@ -97,7 +98,7 @@ export function TaskCard({ task, view }: TaskCardProps) {
              </div>
         </div>
 
-        <Button className="w-full bg-[#1A1A1A] text-white hover:bg-[#333] h-9 text-xs font-medium rounded-md">
+        <Button onClick={onView} className="w-full bg-[#1A1A1A] text-white hover:bg-[#333] h-9 text-xs font-medium rounded-md cursor-pointer">
             Voir
         </Button>
     </div>

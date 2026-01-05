@@ -53,18 +53,20 @@ export function ProjectTaskCard({ task }: ProjectTaskCardProps) {
             <div className="flex items-center gap-2 text-sm">
                  <span className="text-muted-foreground min-w-[80px]">Assigné à :</span>
                  <div className="flex items-center gap-3">
-                     <div className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-700">BD</div>
-                        <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] text-gray-600 font-medium border border-gray-200">
-                            Bertrand Dupont
-                        </span>
-                     </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-700">AD</div>
-                        <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] text-gray-600 font-medium border border-gray-200">
-                            Anne Dupont
-                        </span>
-                     </div>
+                     {task.assignees && task.assignees.length > 0 ? (
+                        task.assignees.map((assignee, i) => (
+                             <div key={i} className="flex items-center gap-2">
+                                <div className="h-5 w-5 rounded bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-700">
+                                    {assignee.user.name?.substring(0, 2).toUpperCase()}
+                                </div>
+                                <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] text-gray-600 font-medium border border-gray-200">
+                                    {assignee.user.name || assignee.user.email}
+                                </span>
+                             </div>
+                        ))
+                     ) : (
+                         <span className="text-xs text-muted-foreground italic">Non assigné</span>
+                     )}
                  </div>
             </div>
         </div>
