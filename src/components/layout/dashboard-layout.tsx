@@ -1,5 +1,5 @@
-import { Sidebar } from './sidebar';
 import { Header } from './header';
+import { Footer } from './footer';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -8,19 +8,12 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
-      {/* Sidebar - Hidden on mobile usually, but keeping simple for now */}
-      <aside className="hidden md:flex flex-shrink-0">
-        <Sidebar />
-      </aside>
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title={title} />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          {children}
-        </main>
-      </div>
+    <div className="flex min-h-screen flex-col bg-background font-sans">
+      <Header />
+      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 md:px-8">
+        {children}
+      </main>
+      <Footer />
     </div>
   );
 }

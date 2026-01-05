@@ -19,7 +19,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   
-  // Get initials from name or email
   const getInitials = () => {
     if (user?.name) {
       return user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();

@@ -1,4 +1,5 @@
 import { AuthResponse, LoginPayload, RegisterPayload, User } from '@/types/auth';
+import { DashboardStats, Task } from '@/types';
 
 const API_URL = 'http://localhost:8000';
 
@@ -39,7 +40,6 @@ class AuthService {
             throw new Error(body.message || 'Une erreur est survenue');
         }
 
-        // Le backend enveloppe les données dans une propriété 'data'
         return (body as ApiResponse<T>).data;
     }
 
@@ -64,12 +64,14 @@ class AuthService {
         return response.user;
     }
 
-    async getDashboardStats(): Promise<any> {
-        return this.request('/dashboard/stats');
+    async getDashboardStats(): Promise<DashboardStats> {
+        const response = await this.request<{ stats: DashboardStats }>('/dashboard/stats');
+        return response.stats;
     }
 
-    async getAssignedTasks(): Promise<any> {
-        return this.request('/dashboard/assigned-tasks');
+    async getAssignedTasks(): Promise<Task[]> {
+        const response = await this.request<{ tasks: Task[] }>('/dashboard/assigned-tasks');
+        return response.tasks;
     }
 }
 
