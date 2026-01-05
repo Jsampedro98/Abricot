@@ -3,26 +3,68 @@
 :root {
   /* Abricot Palette */
   --primary: #D9540E;
-  --primary-light: #FDE8E1; /* Lighter shade for chips/backgrounds */
-  --primary-dark: #B9440B; /* Hover state */
+  --primary-foreground: #FFFFFF;
   
-  --background: #F8F9FA; /* Slightly off-white background like in screenshots */
-  --foreground: #1A1A1A; /* Near black text */
-  --border: #E5E7EB;
+  --secondary: #1A1A1A; /* Black buttons */
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
+
+  --accent: #FDE8E1; /* Light Orange */
+  --accent-foreground: #D9540E;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
   
+  --background: #F8F9FA;
+  --foreground: #1A1A1A;
+
   --card: #FFFFFF;
   --card-foreground: #1A1A1A;
+  
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #D9540E;
+  
+  --radius: 0.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  
   --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
-  --color-primary-dark: var(--primary-dark);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  
   --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
   
   --font-sans: 'Inter', system-ui, sans-serif;
 }
