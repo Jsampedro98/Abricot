@@ -14,6 +14,15 @@ export interface Project {
     createdAt?: string;
     updatedAt?: string;
     owner?: UserShort;
+    tasks?: Task[];
+    _count?: {
+        tasks: number;
+        members?: number;
+    };
+    members?: {
+        user: UserShort;
+        role: string;
+    }[];
 }
 
 export interface Comment {

@@ -1,5 +1,5 @@
 import { AuthResponse, LoginPayload, RegisterPayload, User } from '@/types/auth';
-import { DashboardStats, Task } from '@/types';
+import { DashboardStats, Task, Project } from '@/types';
 
 const API_URL = 'http://localhost:8000';
 
@@ -72,6 +72,24 @@ class AuthService {
     async getAssignedTasks(): Promise<Task[]> {
         const response = await this.request<{ tasks: Task[] }>('/dashboard/assigned-tasks');
         return response.tasks;
+    }
+
+    async getProjects(): Promise<Project[]> {
+        const response = await this.request<{ projects: Project[] }>('/projects');
+        return response.projects;
+    }
+
+    async getProject(id: string): Promise<Project> {
+        const response = await this.request<{ project: Project }>(`/projects/${id}`);
+        return response.project;
+    }
+
+    async createProject(data: { name: string; description?: string }): Promise<Project> {
+        const response = await this.request<{ project: Project }>('/projects', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return response.project;
     }
 }
 
