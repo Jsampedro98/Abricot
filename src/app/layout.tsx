@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Application SaaS de gestion de projet collaboratif',
 };
 
+import { AuthProvider } from '@/context/auth-context';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.variable} antialiased bg-background text-foreground`}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
