@@ -16,15 +16,37 @@ import { CreateTaskModal } from "@/components/tasks/create-task-modal";
 import { EditProjectModal } from "@/components/projects/edit-project-modal";
 import { AICreateTaskModal } from "@/components/tasks/ai-create-task-modal";
 
+import { useProject, useProjectTasks } from "@/hooks/use-queries";
+
+/**
+ * ProjectDetailsPage Component
+ * 
+ * Displays detailed information about a specific project.
+ * Shows task lists grouped by status, project members, and allows task management.
+ * Integrates with `AICreateTaskModal` for generating tasks.
+ */
 export default function ProjectDetailsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const projectId = params.id as string;
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const { data: project, isLoading: isProjectLoading } = useProject(projectId);
+  const { data: rawTasks = [], isLoading: isTasksLoading } = useProjectTasks(projectId);
+  
+  const priorityMap: Record<string, number> = {
+    URGENT: 1,
+    HIGH: 2,
+    MEDIUM: 3,
+    LOW: 4
+  };
+
+  const tasks = [...rawTasks].sort((a, b) => {
+    const pA = priorityMap[a.priority] || 99;
+    const pB = priorityMap[b.priority] || 99;
+    return pA - pB;
+  });
+  
   const [activeTab, setActiveTab] = useState<"list" | "calendar">("list");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
@@ -37,26 +59,7 @@ export default function ProjectDetailsPage() {
     }
   }, [isLoading, user, router]);
 
-  const fetchProjectData = () => {
-    if (user && projectId) {
-      Promise.all([
-          authService.getProject(projectId),
-          authService.getProjectTasks(projectId)
-      ])
-      .then(([projectData, tasksData]) => {
-          setProject(projectData);
-          setTasks(tasksData); 
-      })
-      .catch(console.error)
-      .finally(() => setIsDataLoading(false));
-    }
-  };
-
-  useEffect(() => {
-      fetchProjectData();
-  }, [user, projectId]);
-
-  if (isLoading || !user || isDataLoading) {
+  if (isLoading || !user || isProjectLoading || isTasksLoading) {
     return <div className="flex h-screen items-center justify-center">Chargement...</div>;
   }
 
@@ -78,12 +81,14 @@ export default function ProjectDetailsPage() {
                <div>
                    <div className="flex items-center gap-3 mb-2">
                         <h2 className="text-2xl font-bold tracking-tight">{project.name}</h2>
-                        <span 
-                            onClick={() => setIsEditModalOpen(true)}
-                            className="text-sm font-medium text-[#D95F18] cursor-pointer hover:underline"
-                        >
-                            Modifier
-                        </span>
+                        {user && project.owner && String(project.owner.id) === String(user.id) && (
+                            <span 
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="text-sm font-medium text-[#D95F18] cursor-pointer hover:underline"
+                            >
+                                Modifier
+                            </span>
+                        )}
                    </div>
                    <p className="text-muted-foreground">{project.description || "Aucune description"}</p>
                </div>
@@ -185,7 +190,6 @@ export default function ProjectDetailsPage() {
       <CreateTaskModal 
         isOpen={isCreateTaskModalOpen}
         onClose={() => setIsCreateTaskModalOpen(false)}
-        onSuccess={fetchProjectData}
         projectId={projectId}
         projectMembers={project?.members || []}
       />
@@ -195,7 +199,6 @@ export default function ProjectDetailsPage() {
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
             project={project}
-            onSuccess={fetchProjectData}
         />
       )}
 
@@ -206,7 +209,7 @@ export default function ProjectDetailsPage() {
             task={editingTask}
             projectId={projectId}
             projectMembers={project.members || []}
-            onSuccess={fetchProjectData}
+            userRole={project.userRole}
           />
       )}
 
@@ -214,7 +217,6 @@ export default function ProjectDetailsPage() {
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
         projectId={projectId}
-        onSuccess={fetchProjectData}
       />
     </DashboardLayout>
   );

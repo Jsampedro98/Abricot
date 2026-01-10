@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Sparkles, Trash2, Pencil, Plus } from "lucide-react";
 
+import { useCreateTask } from "@/hooks/use-queries";
+
 interface AICreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
-  onSuccess: () => void;
 }
 
 interface GeneratedTask {
@@ -19,17 +20,22 @@ interface GeneratedTask {
     description: string;
 }
 
-export function AICreateTaskModal({ isOpen, onClose, projectId, onSuccess }: AICreateTaskModalProps) {
+export function AICreateTaskModal({ isOpen, onClose, projectId }: AICreateTaskModalProps) {
   const [prompt, setPrompt] = useState("");
   const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const createTaskMutation = useCreateTask();
 
   const handleGenerate = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!prompt.trim()) return;
 
     setIsLoading(true);
+    // Request task suggestions based on the user prompt
+    // Ideally this would call a backend endpoint
     setTimeout(() => {
         setGeneratedTasks([
             { id: '1', title: 'Campagne Marketing', description: 'Définir les canaux et le budget pour Q1' },
@@ -42,9 +48,29 @@ export function AICreateTaskModal({ isOpen, onClose, projectId, onSuccess }: AIC
   };
 
   const handleCreateAll = async () => {
-    onSuccess();
-    onClose();
-    reset();
+    setIsCreating(true);
+    try {
+        // Create all tasks sequentially or parallel
+        for (const task of generatedTasks) {
+            await createTaskMutation.mutateAsync({
+                projectId,
+                data: {
+                    title: task.title,
+                    description: task.description,
+                    dueDate: undefined, // Or defaulting
+                    status: 'TODO',
+                    assigneeIds: [],
+                    priority: 'MEDIUM' 
+                }
+            });
+        }
+        reset();
+        onClose();
+    } catch (error) {
+        console.error("Failed to create generated tasks", error);
+    } finally {
+        setIsCreating(false);
+    }
   };
 
   const reset = () => {
@@ -111,8 +137,9 @@ export function AICreateTaskModal({ isOpen, onClose, projectId, onSuccess }: AIC
                             <Button 
                                 onClick={handleCreateAll}
                                 className="bg-[#1A1A1A] hover:bg-[#333] text-white rounded-lg px-8 py-6 h-auto text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                                disabled={isCreating}
                             >
-                                + Ajouter les tâches
+                                {isCreating ? "Création en cours..." : "+ Ajouter les tâches"}
                             </Button>
                         </div>
                     </div>

@@ -45,7 +45,7 @@ export function Modal({ isOpen, onClose, children, title, className }: ModalProp
       {/* Content */}
       <div 
         className={cn(
-          "relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200",
+          "relative w-full max-w-lg rounded-xl bg-white p-4 md:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200",
           className
         )}
       >

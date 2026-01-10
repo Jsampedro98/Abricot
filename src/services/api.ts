@@ -1,5 +1,5 @@
 import { AuthResponse, LoginPayload, RegisterPayload, User } from '@/types/auth';
-import { DashboardStats, Task, Project } from '@/types';
+import { DashboardStats, Task, Project, Comment } from '@/types';
 
 const API_URL = 'http://localhost:8000';
 
@@ -60,6 +60,14 @@ class AuthService {
     async getProfile(): Promise<User> {
         const response = await this.request<{ user: User }>('/auth/profile', {
             method: 'GET',
+        });
+        return response.user;
+    }
+
+    async updateProfile(data: { name?: string; email?: string; password?: string }): Promise<User> {
+        const response = await this.request<{ user: User }>('/auth/profile', {
+            method: 'PUT',
+            body: JSON.stringify(data),
         });
         return response.user;
     }
@@ -150,6 +158,19 @@ class AuthService {
         await this.request(`/projects/${projectId}/tasks/${taskId}`, {
             method: 'DELETE',
         });
+    }
+
+    async getTaskComments(projectId: string, taskId: string): Promise<Comment[]> {
+        const response = await this.request<{ comments: Comment[] }>(`/projects/${projectId}/tasks/${taskId}/comments`);
+        return response.comments;
+    }
+
+    async addComment(projectId: string, taskId: string, content: string): Promise<Comment> {
+        const response = await this.request<{ comment: Comment }>(`/projects/${projectId}/tasks/${taskId}/comments`, {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+        });
+        return response.comment;
     }
 }
 

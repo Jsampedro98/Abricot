@@ -39,8 +39,8 @@ export function TaskCard({ task, view, onView }: TaskCardProps) {
              </span>
         </div>
         
-        <div className="flex items-center justify-between mt-4">
-             <div className="flex items-center gap-6 text-xs text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-4">
+             <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-muted-foreground">
                  <div className="flex items-center gap-2">
                     <Folder className="h-4 w-4 text-gray-400" />
                     <span>{task.project?.name || "Projet inconnu"}</span>
@@ -53,11 +53,11 @@ export function TaskCard({ task, view, onView }: TaskCardProps) {
                  )}
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-gray-400" />
-                    <span>{task._count?.comments || 0}</span>
+                    <span>{task.comments?.length || task._count?.comments || 0}</span>
                  </div>
              </div>
 
-            <Button onClick={onView} variant="secondary" className="bg-[#1A1A1A] text-white hover:bg-[#333] h-9 px-6 text-sm font-medium rounded-md cursor-pointer">
+            <Button onClick={onView} variant="secondary" className="w-full sm:w-auto bg-[#1A1A1A] text-white hover:bg-[#333] h-9 px-6 text-sm font-medium rounded-md cursor-pointer">
                 Voir
             </Button>
         </div>
@@ -94,7 +94,7 @@ export function TaskCard({ task, view, onView }: TaskCardProps) {
              )}
              <div className="flex items-center gap-1.5 shrink-0">
                 <MessageSquare className="h-3 w-3" />
-                <span>{task._count?.comments || 0}</span>
+                <span>{task.comments?.length || task._count?.comments || 0}</span>
              </div>
         </div>
 

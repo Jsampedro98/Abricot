@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 interface UserSearchProps {
   onSelect: (user: User) => void;
-  excludeUserIds?: string[];
+  excludeUserIds?: (string | number)[];
   placeholder?: string;
 }
 
@@ -48,8 +48,9 @@ export function UserSearch({ onSelect, excludeUserIds = [], placeholder = "Reche
     try {
         setIsLoading(true);
         const users = await authService.searchUsers(query);
-        // Filter out excluded users (like current members)
-        const filtered = users.filter(u => !excludeUserIds.includes(u.id));
+        // Filter out excluded users (normalize to string for comparison)
+        const excludedStrings = excludeUserIds.map(String);
+        const filtered = users.filter(u => !excludedStrings.includes(String(u.id)));
         setResults(filtered);
         setShowResults(true);
     } catch (error) {

@@ -25,6 +25,7 @@ export interface Project {
         members?: number;
     };
     members?: ProjectMember[];
+    userRole?: 'ADMIN' | 'CONTRIBUTOR' | null;
 }
 
 export interface Comment {

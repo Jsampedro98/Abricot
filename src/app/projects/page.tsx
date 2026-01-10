@@ -11,34 +11,37 @@ import { Plus } from "lucide-react";
 import { ProjectCard } from "@/components/projects/project-card";
 import { CreateProjectModal } from "@/components/projects/create-project-modal";
 
-export default function ProjectsPage() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+import { useProjects, useAssignedTasks } from "@/hooks/use-queries";
 
-  const fetchProjects = () => {
-    if (user) {
-        setIsDataLoading(true);
-        authService.getProjects()
-          .then(setProjects)
-          .catch(console.error)
-          .finally(() => setIsDataLoading(false));
-      }
-  };
+export default function ProjectsPage() {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const { data: projects = [], isLoading: isProjectsLoading } = useProjects();
+  const { data: tasks = [], isLoading: isTasksLoading } = useAssignedTasks();
+
+  // Calculate Urgency Scores
+  const projectsWithScore = projects.map(project => {
+      const projectTasks = tasks.filter(t => t.projectId === project.id && t.status !== 'DONE');
+      let urgencyScore = 0;
+      projectTasks.forEach(task => {
+        // Weighted scoring for urgency
+        if (task.priority === 'URGENT') urgencyScore += 10;
+        else if (task.priority === 'HIGH') urgencyScore += 5;
+        else if (task.priority === 'MEDIUM') urgencyScore += 2;
+        else urgencyScore += 1; // LOW
+      });
+      return { ...project, urgencyScore, taskCount: projectTasks.length };
+  }).sort((a, b) => b.urgencyScore - a.urgencyScore);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isAuthLoading && !user) {
       router.push("/auth/login");
     }
-  }, [isLoading, user, router]);
+  }, [isAuthLoading, user, router]);
 
-  useEffect(() => {
-    fetchProjects();
-  }, [user]);
-
-  if (isLoading || !user) {
+  if (isAuthLoading || isProjectsLoading) {
     return <div className="flex h-screen items-center justify-center">Chargement...</div>;
   }
 
@@ -57,9 +60,7 @@ export default function ProjectsPage() {
         </div>
 
         {/* Projects Grid */}
-        {isDataLoading ? (
-             <div className="text-center py-12 text-muted-foreground">Chargement des projets...</div>
-        ) : projects.length === 0 ? (
+        {projects.length === 0 ? (
             <div className="text-center py-12 rounded-xl border border-dashed border-border/60 bg-gray-50/50">
                 <h3 className="test-lg font-medium mb-2">Aucun projet trouvé</h3>
                 <p className="text-sm text-muted-foreground mb-6">Commencez par créer votre premier projet pour collaborer.</p>
@@ -69,8 +70,15 @@ export default function ProjectsPage() {
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map(project => (
-                    <ProjectCard key={project.id} project={project} />
+                {projectsWithScore.map(project => (
+                    <div key={project.id} className="relative">
+                        <ProjectCard project={project} />
+                        {project.urgencyScore > 10 && (
+                            <span className="absolute -top-2 -right-2 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-full border border-red-200 shadow-sm z-10">
+                                PRIORITAIRE
+                            </span>
+                        )}
+                    </div>
                 ))}
             </div>
         )}
@@ -79,8 +87,8 @@ export default function ProjectsPage() {
       <CreateProjectModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={fetchProjects}
       />
     </DashboardLayout>
   );
 }
+

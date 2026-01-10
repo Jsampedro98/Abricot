@@ -10,10 +10,11 @@ import { UserSearch } from "@/components/ui/user-search";
 import { User } from "@/types/auth";
 import { X } from "lucide-react";
 
+import { useCreateProject } from "@/hooks/use-queries";
+
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
 interface ProjectFormData {
@@ -21,38 +22,35 @@ interface ProjectFormData {
   description: string;
 }
 
-export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProjectModalProps) {
+export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ProjectFormData>();
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedContributors, setSelectedContributors] = useState<User[]>([]);
+  
+  const createProjectMutation = useCreateProject();
 
-  const onSubmit = async (data: ProjectFormData) => {
-    try {
-      setIsLoading(true);
-      // Backend expects emails for contributors
-      await authService.createProject({
+  const onSubmit = (data: ProjectFormData) => {
+      createProjectMutation.mutate({
           ...data,
           contributors: selectedContributors.map(u => u.email)
+      }, {
+          onSuccess: () => {
+              reset();
+              setSelectedContributors([]);
+              onClose();
+          }
       });
-      reset();
-      setSelectedContributors([]);
-      onSuccess?.();
-      onClose();
-    } catch (error) {
-      console.error("Failed to create project", error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
+  const isLoading = createProjectMutation.isPending;
+
   const addContributor = (user: User) => {
-      if (!selectedContributors.find(u => u.id === user.id)) {
+      if (!selectedContributors.find(u => String(u.id) === String(user.id))) {
           setSelectedContributors([...selectedContributors, user]);
       }
   };
 
-  const removeContributor = (userId: string) => {
-      setSelectedContributors(selectedContributors.filter(u => u.id !== userId));
+  const removeContributor = (userId: string | number) => {
+      setSelectedContributors(selectedContributors.filter(u => String(u.id) !== String(userId)));
   };
 
   return (
@@ -107,7 +105,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                                 {user.name?.substring(0, 1).toUpperCase()}
                             </div>
                             <span className="text-xs text-gray-700">{user.name || user.email}</span>
-                            <button type="button" onClick={() => removeContributor(user.id)} className="text-gray-400 hover:text-red-500">
+                            <button type="button" onClick={() => removeContributor(user.id)} className="text-gray-400 hover:text-red-500" aria-label="Retirer ce contributeur">
                                 <X className="h-3 w-3" />
                             </button>
                         </div>

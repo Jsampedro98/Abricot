@@ -4,10 +4,11 @@ import { useForm } from "react-hook-form";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ProjectMember, Task, TaskStatus } from "@/types";
+import { ProjectMember, Task, TaskStatus, TaskPriority } from "@/types";
 import { useState, useEffect } from "react";
 import { authService } from "@/services/api";
-import { Trash2 } from "lucide-react";
+import { Trash2, Send } from "lucide-react";
+import { useUpdateTask, useDeleteTask, useTaskComments, useAddComment } from "@/hooks/use-queries";
 
 interface EditTaskModalProps {
   isOpen: boolean;
@@ -15,63 +16,99 @@ interface EditTaskModalProps {
   task: Task;
   projectId: string;
   projectMembers: ProjectMember[];
-  onSuccess: () => void;
+  userRole?: 'ADMIN' | 'CONTRIBUTOR' | null;
 }
 
-interface TaskFormData {
+interface EditTaskFormData {
   title: string;
   description: string;
   dueDate: string;
   status: TaskStatus;
+  priority: TaskPriority;
 }
 
-export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers, onSuccess }: EditTaskModalProps) {
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<TaskFormData>({
-      defaultValues: {
-          title: task.title,
-          description: task.description || "",
-          dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "",
-          status: task.status
-      }
+/**
+ * EditTaskModal Component
+ * 
+ * Modal for editing existing tasks.
+ * Supports updating task details (title, description, status, priority, due date),
+ * managing assignees, and adding/viewing comments.
+ * Adjusts UI based on user role (e.g., read-only for contributors).
+ */
+export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers, userRole }: EditTaskModalProps) {
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<EditTaskFormData>({
+    defaultValues: {
+      title: task.title,
+      description: task.description || "",
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "",
+      status: task.status,
+      priority: task.priority
+    }
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+  
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [newComment, setNewComment] = useState("");
   const currentStatus = watch("status");
+  
+  const { data: comments = [], isLoading: isCommentsLoading } = useTaskComments(projectId, task.id);
+  const addCommentMutation = useAddComment();
 
-  useEffect(() => {
-      if (task) {
-          setAssigneeIds(task.assignees?.map(a => a.user.id) || []);
-      }
-  }, [task]);
-
-  const onSubmit = async (data: TaskFormData) => {
-    try {
-      setIsLoading(true);
-      await authService.updateTask(projectId, task.id, {
-          ...data,
-          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
-          assigneeIds
+  const handleAddComment = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newComment.trim()) return;
+      
+      addCommentMutation.mutate({
+          projectId,
+          taskId: task.id,
+          content: newComment
+      }, {
+          onSuccess: () => {
+              setNewComment("");
+          }
       });
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error("Failed to update task", error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
-  const handleDelete = async () => {
-      if (!confirm("Supprimer cette tâche ?")) return;
-      try {
-          setIsLoading(true);
-          await authService.deleteTask(projectId, task.id);
-          onSuccess();
-          onClose();
-      } catch (error) {
-           console.error("Failed to delete task", error);
-           setIsLoading(false);
+  useEffect(() => {
+    if (isOpen) {
+        setValue("title", task.title);
+        setValue("description", task.description || "");
+        setValue("dueDate", task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "");
+        setValue("status", task.status);
+        setValue("priority", task.priority);
+        // Initialize assignees
+        setAssigneeIds(task.assignees?.map(a => a.user.id) ? task.assignees.map(a => String(a.user.id)) : []);
+    }
+  }, [isOpen, task, setValue]);
+
+  const onSubmit = (data: EditTaskFormData) => {
+    updateTaskMutation.mutate({
+        projectId,
+        taskId: task.id,
+        data: {
+            ...data,
+            dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+            assigneeIds: assigneeIds
+        }
+    }, {
+        onSuccess: () => {
+            onClose();
+        }
+    });
+  };
+
+  const handleDelete = () => {
+      if (confirm("Êtes-vous sûr de vouloir supprimer cette tâche ?")) {
+          deleteTaskMutation.mutate({
+              projectId,
+              taskId: task.id
+          }, {
+              onSuccess: () => {
+                  onClose();
+              }
+          });
       }
   };
 
@@ -82,9 +119,12 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
           setAssigneeIds([...assigneeIds, userId]);
       }
   };
+  
+  const isLoading = updateTaskMutation.isPending || deleteTaskMutation.isPending;
+  const isContributor = userRole === 'CONTRIBUTOR';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Modifier la tâche" className="max-w-xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={isContributor ? "Détails de la tâche" : "Modifier la tâche"} className="max-w-xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         
         {/* Title */}
@@ -94,8 +134,9 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             </label>
             <Input 
                 id="title"
+                disabled={isContributor}
                 {...register("title", { required: "Le titre est requis" })}
-                className="bg-gray-50/50 border-gray-200"
+                className="bg-gray-50/50 border-gray-200 disabled:opacity-75 disabled:cursor-not-allowed"
             />
             {errors.title && <span className="text-red-500 text-xs">{errors.title.message}</span>}
         </div>
@@ -107,8 +148,9 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             </label>
             <Input 
                 id="description"
+                disabled={isContributor}
                 {...register("description")}
-                className="bg-gray-50/50 border-gray-200"
+                className="bg-gray-50/50 border-gray-200 disabled:opacity-75 disabled:cursor-not-allowed"
             />
         </div>
 
@@ -120,8 +162,9 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             <Input 
                 id="dueDate"
                 type="date"
+                disabled={isContributor}
                 {...register("dueDate")}
-                className="bg-gray-50/50 border-gray-200"
+                className="bg-gray-50/50 border-gray-200 disabled:opacity-75 disabled:cursor-not-allowed"
             />
         </div>
 
@@ -135,9 +178,10 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
                             <input 
                                 type="checkbox"
                                 id={`edit-assignee-${member.user.id}`}
-                                checked={assigneeIds.includes(member.user.id)}
-                                onChange={() => toggleAssignee(member.user.id)}
-                                className="rounded border-gray-300 text-black focus:ring-black"
+                                checked={assigneeIds.includes(String(member.user.id))}
+                                onChange={() => toggleAssignee(String(member.user.id))}
+                                disabled={isContributor}
+                                className="rounded border-gray-300 text-black focus:ring-black disabled:opacity-50"
                             />
                             <label htmlFor={`edit-assignee-${member.user.id}`} className="text-sm text-gray-700 cursor-pointer flex items-center gap-2">
                                 <div className="h-5 w-5 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">
@@ -158,10 +202,11 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
              <label className="text-sm font-medium text-foreground">
                 Statut :
             </label>
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 ${isContributor ? 'opacity-70 pointer-events-none' : ''}`}>
                 <button
                     type="button"
                     onClick={() => setValue("status", "TODO")}
+                    disabled={isContributor}
                     className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                         currentStatus === 'TODO' 
                         ? "bg-pink-100 text-pink-700 ring-2 ring-pink-200" 
@@ -195,6 +240,82 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             </div>
         </div>
 
+
+        {/* Priority */}
+        <div className="space-y-2">
+             <label className="text-sm font-medium text-foreground">
+                Priorité :
+            </label>
+            <div className={`flex flex-wrap items-center gap-2 ${isContributor ? 'opacity-70 pointer-events-none' : ''}`}>
+                {(['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const).map((p) => (
+                    <button
+                        key={p}
+                        type="button"
+                        onClick={() => setValue("priority", p)}
+                        disabled={isContributor}
+                        className={`px-3 py-1 rounded-md text-xs font-bold border transition-all ${
+                            watch("priority") === p
+                            ? "bg-black text-white border-black" 
+                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                        }`}
+                    >
+                        {p === 'LOW' && 'Faible'}
+                        {p === 'MEDIUM' && 'Moyenne'}
+                        {p === 'HIGH' && 'Élevée'}
+                        {p === 'URGENT' && 'Urgente'}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+             <h3 className="text-sm font-medium text-foreground">Commentaires</h3>
+             
+             {/* List */}
+             <div className="space-y-3 max-h-40 overflow-y-auto pr-1">
+                {comments.length > 0 ? (
+                    comments.map(comment => (
+                        <div key={comment.id} className="bg-gray-50 p-3 rounded-lg text-xs space-y-1">
+                            <div className="flex justify-between items-start">
+                                <span className="font-semibold text-gray-900">{comment.author?.name || comment.author?.email || 'Utilisateur'}</span>
+                                <span className="text-gray-400 text-[10px]">{new Date(comment.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <p className="text-gray-600">{comment.content}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-xs text-muted-foreground italic">Aucun commentaire pour le moment.</p>
+                )}
+             </div>
+
+             {/* Add Comment */}
+             <div className="flex gap-2">
+                 <Input 
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Ajouter un commentaire..."
+                    className="bg-white text-xs h-9"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault(); // Prevent form submission
+                            handleAddComment(e);
+                        }
+                    }}
+                 />
+                 <Button 
+                    type="button" 
+                    onClick={handleAddComment} 
+                    disabled={addCommentMutation.isPending || !newComment.trim()}
+                    size="icon"
+                    className="h-9 w-9 bg-neutral-900 hover:bg-neutral-800"
+                    aria-label="Envoyer le commentaire"
+                 >
+                     <Send className="h-4 w-4 text-white" />
+                 </Button>
+             </div>
+        </div>
+
         {/* Footer */}
         <div className="pt-2 flex justify-between items-center">
             <button 
@@ -208,9 +329,9 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             <Button 
                 type="submit" 
                 className="bg-[#e5e7eb] hover:bg-[#d1d5db] text-gray-800 font-medium px-6"
-                disabled={isLoading}
+                disabled={isLoading || isContributor}
             >
-                {isLoading ? "Enregistrement..." : "Enregistrer"}
+                {isLoading ? "Enregistrement..." : isContributor ? "Lecture seule" : "Enregistrer"}
             </Button>
         </div>
 

@@ -34,7 +34,7 @@ export function ProjectTaskCard({ task }: ProjectTaskCardProps) {
                     {statusLabels[task.status] || task.status}
                 </span>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Options">
                 <MoreHorizontal className="h-4 w-4 text-gray-400" />
             </Button>
         </div>
@@ -72,12 +72,15 @@ export function ProjectTaskCard({ task }: ProjectTaskCardProps) {
         </div>
 
         {/* Footer / Comments Toggle */}
-        <div className="border-t border-border/50 pt-4 flex items-center justify-between cursor-pointer group">
+        <button 
+            type="button"
+            className="w-full border-t border-border/50 pt-4 flex items-center justify-between cursor-pointer group bg-transparent hover:bg-gray-50/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-b-xl px-1 pb-1"
+        >
             <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                Commentaires ({task._count?.comments || 0})
+                Commentaires ({task.comments?.length || task._count?.comments || 0})
             </span>
             <ChevronUp className="h-4 w-4 text-gray-400 group-hover:text-foreground transition-colors" />
-        </div>
+        </button>
     </div>
   );
 }
