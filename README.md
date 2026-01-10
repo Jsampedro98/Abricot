@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Abricot
 
-## Getting Started
+Application de gestion de projets et de tâches (SaaS B2B).
+Ce projet est composé d'une API backend (Node.js/Prisma) et d'une interface frontend (Next.js/React).
 
-First, run the development server:
+##  Fonctionnalités Clés
+
+*   **Authentification sécurisée** : Inscription, connexion via JTW.
+*   **Tableau de Bord** : Vue d'ensemble des tâches assignées (Liste & Kanban).
+*   **Gestion de Projets** : Création, édition, et tri par urgence (calculé automatiquement).
+*   **Gestion des Tâches** : CRUD complet, statuts (À faire, En cours, Terminé), priorités.
+*   **Kanban Drag & Drop** : Changement de statut de tâche par glisser-déposer.
+*   **Collaboration** : Assignation de tâches, commentaires, rôles (Admin/Contributeur).
+*   **IA Suggestive** : Génération automatique de listes de tâches via prompt (Mock/Simulation).
+
+##  Prérequis Technique
+
+*   **Node.js** (v18+)
+*   **NPM**
+*   **XAMPP** (ou tout serveur MySQL Local) pour la base de données.
+
+##  Installation & Démarrage
+
+Clonez le projet dans votre répertoire de travail (ex: `htdocs` si vous utilisez XAMPP).
+
+### 1. Backend (API)
+
+Le backend gère la logique métier et la base de données.
 
 ```bash
+cd backend
+
+# Installation des dépendances
+npm install
+
+# Configuration de la BDD (Assurez-vous que MySQL est lancé)
+# Le fichier .env doit contenir votre DATABASE_URL
+npx prisma generate
+npx prisma db push  # Synchronise le schéma Prisma avec la BDD
+
+# Lancer le serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+> Le serveur backend sera accessible sur `http://localhost:8000`.
+> Documentation API Swagger disponible sur `http://localhost:8000/api-docs`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Frontend (Client)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+L'interface utilisateur Next.js.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd frontend
 
-## Learn More
+# Installation des dépendances
+npm install
 
-To learn more about Next.js, take a look at the following resources:
+# Lancer le serveur de développement
+npm run dev
+```
+> L'application sera accessible sur `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+##  Stack Technique
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Frontend
+*   **Framework** : Next.js 16 (App Router)
+*   **UI** : React 19, Tailwind CSS v4
+*   **State Management** : @tanstack/react-query
+*   **Formulaires** : react-hook-form
+*   **Drag & Drop** : @hello-pangea/dnd
+*   **Icônes** : Lucide React
 
-## Deploy on Vercel
+### Backend
+*   **Runtime** : Node.js
+*   **Framework** : Express.js
+*   **Langage** : TypeScript
+*   **ORM** : Prisma Client
+*   **Base de données** : MySQL
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+##  Auteurs
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Projet réalisé dans le cadre de la formation OpenClassrooms - Développeur FullStack.
