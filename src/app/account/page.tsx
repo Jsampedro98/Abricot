@@ -8,20 +8,41 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { authService } from "@/services/api";
 import { useRouter } from "next/navigation";
+import { Lock, User as UserIcon } from "lucide-react";
 
-interface AccountFormData {
+interface ProfileFormData {
     firstName: string;
     lastName: string;
     email: string;
-    password?: string;
+}
+
+interface PasswordFormData {
+    currentPassword: string;
+    newPassword: string;
 }
 
 export default function AccountPage() {
   const { user, isLoading, login } = useAuth();
   const router = useRouter();
-  const [isSaving, setIsSaving] = useState(false);
   
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<AccountFormData>();
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  
+  // Profile Form
+  const { 
+      register: registerProfile, 
+      handleSubmit: handleSubmitProfile, 
+      setValue: setProfileValue,
+      formState: { errors: profileErrors } 
+  } = useForm<ProfileFormData>();
+
+  // Password Form
+  const { 
+      register: registerPassword, 
+      handleSubmit: handleSubmitPassword, 
+      reset: resetPassword,
+      formState: { errors: passwordErrors } 
+  } = useForm<PasswordFormData>();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -30,7 +51,6 @@ export default function AccountPage() {
     }
 
     if (user) {
-        // Logic to extract first and last name from the full name string
         const parts = user.name ? user.name.split(' ') : [];
         let firstName = "";
         let lastName = "";
@@ -40,37 +60,49 @@ export default function AccountPage() {
             lastName = parts.slice(1).join(' ');
         }
 
-
-        setValue("firstName", firstName);
-        setValue("lastName", lastName);
-        setValue("email", user.email);
+        setProfileValue("firstName", firstName);
+        setProfileValue("lastName", lastName);
+        setProfileValue("email", user.email);
     }
-  }, [user, isLoading, router, setValue]);
+  }, [user, isLoading, router, setProfileValue]);
 
-  const onSubmit = async (data: AccountFormData) => {
+  const onUpdateProfile = async (data: ProfileFormData) => {
     try {
-        setIsSaving(true);
+        setIsSavingProfile(true);
         const fullName = `${data.firstName} ${data.lastName}`.trim();
         
-        const updateData: any = {
+        await authService.updateProfile({
             name: fullName,
             email: data.email
-        };
-
-        if (data.password && data.password.length > 0) {
-            updateData.password = data.password;
-        }
-
-        await authService.updateProfile(updateData);
+        });
         
-        // Refresh page to update context
         window.location.reload(); 
 
     } catch (error) {
         console.error("Failed to update profile", error);
         alert("Erreur lors de la mise à jour du profil.");
     } finally {
-        setIsSaving(false);
+        setIsSavingProfile(false);
+    }
+  };
+
+  const onUpdatePassword = async (data: PasswordFormData) => {
+    try {
+        setIsSavingPassword(true);
+        
+        await authService.updatePassword({
+            currentPassword: data.currentPassword,
+            newPassword: data.newPassword
+        });
+        
+        alert("Mot de passe mis à jour avec succès !");
+        resetPassword();
+
+    } catch (error: any) {
+        console.error("Failed to update password", error);
+        alert(error.message || "Erreur lors de la mise à jour du mot de passe.");
+    } finally {
+        setIsSavingPassword(false);
     }
   };
 
@@ -80,68 +112,115 @@ export default function AccountPage() {
 
   return (
     <DashboardLayout title="Mon compte">
-      <div className="bg-white rounded-xl border border-border/60 shadow-sm p-8 max-w-4xl mx-auto">
-         <div className="mb-8">
-             <h2 className="text-xl font-bold text-foreground">Mon compte</h2>
-             <p className="text-muted-foreground">{user.name}</p>
+      <div className="max-w-4xl mx-auto space-y-8 pb-12">
+         
+         <div className="flex items-center gap-3 mb-8">
+             <div className="h-12 w-12 rounded-full bg-[#1A1A1A] flex items-center justify-center text-white text-lg font-bold">
+                 {user.name?.charAt(0).toUpperCase()}
+             </div>
+             <div>
+                <h2 className="text-xl font-bold text-foreground">{user.name}</h2>
+                <p className="text-muted-foreground">{user.email}</p>
+             </div>
          </div>
 
-         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl">
-            
+         {/* Profile Section */}
+         <div className="bg-white rounded-xl border border-border/60 shadow-sm p-8">
+             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
+                 <UserIcon className="h-5 w-5 text-gray-500" />
+                 <h3 className="text-lg font-semibold text-foreground">Informations personnelles</h3>
+             </div>
 
-            
-            <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-medium text-foreground">Nom</label>
-                <Input 
-                    id="lastName"
-                    {...register("lastName")}
-                    className="bg-gray-50/50 border-gray-200"
-                    placeholder="Dupont"
-                />
-            </div>
+             <form onSubmit={handleSubmitProfile(onUpdateProfile)} className="space-y-6 max-w-2xl">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Nom</label>
+                        <Input 
+                            {...registerProfile("lastName")}
+                            className="bg-gray-50/50 border-gray-200"
+                            placeholder="Dupont"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Prénom</label>
+                        <Input 
+                            {...registerProfile("firstName")}
+                            className="bg-gray-50/50 border-gray-200"
+                            placeholder="Amélie"
+                        />
+                    </div>
+                </div>
 
-            <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-medium text-foreground">Prénom</label>
-                <Input 
-                    id="firstName"
-                    {...register("firstName")}
-                    className="bg-gray-50/50 border-gray-200"
-                    placeholder="Amélie"
-                />
-            </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Email</label>
+                    <Input 
+                        {...registerProfile("email", { required: true })}
+                        className="bg-gray-50/50 border-gray-200"
+                        type="email"
+                    />
+                </div>
 
-            <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
-                <Input 
-                    id="email"
-                    {...register("email", { required: true })}
-                    className="bg-gray-50/50 border-gray-200"
-                    type="email"
-                />
-            </div>
+                <div className="pt-2">
+                    <Button 
+                        type="submit" 
+                        className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-6 font-medium"
+                        disabled={isSavingProfile}
+                    >
+                        {isSavingProfile ? "Enregistrement..." : "Mettre à jour le profil"}
+                    </Button>
+                </div>
+             </form>
+         </div>
 
-            <div className="space-y-2">
-                 <label htmlFor="password" className="text-sm font-medium text-foreground">Mot de passe</label>
-                 <Input 
-                    id="password"
-                    {...register("password")}
-                    className="bg-gray-50/50 border-gray-200"
-                    type="password"
-                    placeholder="••••••••••••"
-                 />
-            </div>
+         {/* Security Section */}
+         <div className="bg-white rounded-xl border border-border/60 shadow-sm p-8">
+             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
+                 <Lock className="h-5 w-5 text-gray-500" />
+                 <h3 className="text-lg font-semibold text-foreground">Sécurité</h3>
+             </div>
 
-            <div className="pt-4">
-                <Button 
-                    type="submit" 
-                    className="bg-[#1A1A1A] hover:bg-[#333] text-white px-6 font-medium cursor-pointer"
-                    disabled={isSaving}
-                >
-                    {isSaving ? "Enregistrement..." : "Modifier les informations"}
-                </Button>
-            </div>
+             <form onSubmit={handleSubmitPassword(onUpdatePassword)} className="space-y-6 max-w-2xl">
+                <div className="space-y-2">
+                     <label className="text-sm font-medium text-foreground">Mot de passe actuel</label>
+                     <Input 
+                        {...registerPassword("currentPassword", { required: true })}
+                        className="bg-gray-50/50 border-gray-200"
+                        type="password"
+                        placeholder="••••••••••••"
+                     />
+                </div>
 
-         </form>
+                <div className="space-y-2">
+                     <label className="text-sm font-medium text-foreground">Nouveau mot de passe</label>
+                     <Input 
+                        {...registerPassword("newPassword", { 
+                            required: true, 
+                            minLength: 8,
+                            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/
+                        })}
+                        className="bg-gray-50/50 border-gray-200"
+                        type="password"
+                        placeholder="••••••••••••"
+                     />
+                     {passwordErrors.newPassword && (
+                         <p className="text-xs text-red-500">
+                             Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.
+                         </p>
+                     )}
+                </div>
+
+                <div className="pt-2">
+                    <Button 
+                        type="submit" 
+                        className="bg-[#1A1A1A] hover:bg-[#333] text-white px-6 font-medium"
+                        disabled={isSavingPassword}
+                    >
+                        {isSavingPassword ? "Enregistrement..." : "Changer le mot de passe"}
+                    </Button>
+                </div>
+             </form>
+         </div>
+
       </div>
     </DashboardLayout>
   );

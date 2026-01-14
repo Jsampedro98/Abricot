@@ -15,28 +15,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Provider d'authentification qui gère l'état global de l'utilisateur.
+ * Vérifie le token au chargement et expose les méthodes de connexion/inscription.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const userProfile = await authService.getProfile();
-          setUser(userProfile);
-        } catch (error) {
-          console.error("Failed to fetch profile", error);
-          localStorage.removeItem('token');
-        }
-      }
-      setIsLoading(false);
-    };
+    // Initialisation : Vérifie si un token existe et charge le profil utilisateur
+    useEffect(() => {
+        const initAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const userProfile = await authService.getProfile();
+                    setUser(userProfile);
+                } catch (error) {
+                    // Si le token est invalide on le supprime
+                    console.error("Failed to fetch profile", error);
+                    localStorage.removeItem('token');
+                }
+            }
+            setIsLoading(false);
+        };
 
-    initAuth();
-  }, []);
+        initAuth();
+    }, []);
 
   const login = async (payload: LoginPayload) => {
     try {

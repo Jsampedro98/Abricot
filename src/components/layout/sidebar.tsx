@@ -13,7 +13,7 @@ const navigation = [
 
 import { useAuth } from '@/context/auth-context';
 
-/* ... imports inside component ... */
+
 
 export function Sidebar() {
   const pathname = usePathname();

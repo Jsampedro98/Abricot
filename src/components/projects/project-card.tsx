@@ -9,7 +9,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
-  // Mock calculations for progress if not provided
+  // Calculate progress from task counts
   const totalTasks = project._count?.tasks || 0;
   const completedTasks = project.tasks?.filter(t => t.status === 'DONE').length || 0;
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;

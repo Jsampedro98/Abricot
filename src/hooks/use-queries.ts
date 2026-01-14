@@ -178,3 +178,10 @@ export function useAssignedTasks() {
         queryFn: () => authService.getAssignedTasks(),
     });
 }
+
+export function useGenerateTasks() {
+    return useMutation({
+        mutationFn: (variables: { projectId: string; prompt: string }) =>
+            authService.generateTasks(variables.projectId, variables.prompt),
+    });
+}

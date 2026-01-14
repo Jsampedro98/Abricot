@@ -9,7 +9,15 @@ interface ApiResponse<T> {
     data: T;
 }
 
+/**
+ * Service gérant toutes les communications avec l'API backend.
+ * Inclut la gestion automatique du token d'authentification.
+ */
 class AuthService {
+    /**
+     * Récupère le token JWT stocké dans le localStorage.
+     * @returns Le token ou null si non présent/environnement serveur.
+     */
     private getToken(): string | null {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('token');
@@ -17,6 +25,11 @@ class AuthService {
         return null;
     }
 
+    /**
+     * Méthode générique pour effectuer les requêtes API.
+     * Injecte automatiquement le header Authorization si un token est présent.
+     * Gère la sérialisation JSON et les erreurs HTTP.
+     */
     private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
         const token = this.getToken();
 
@@ -64,12 +77,19 @@ class AuthService {
         return response.user;
     }
 
-    async updateProfile(data: { name?: string; email?: string; password?: string }): Promise<User> {
+    async updateProfile(data: { name?: string; email?: string }): Promise<User> {
         const response = await this.request<{ user: User }>('/auth/profile', {
             method: 'PUT',
             body: JSON.stringify(data),
         });
         return response.user;
+    }
+
+    async updatePassword(passwordData: { currentPassword: string; newPassword: string }): Promise<void> {
+        await this.request('/auth/password', {
+            method: 'PUT',
+            body: JSON.stringify(passwordData),
+        });
     }
 
     async getDashboardStats(): Promise<DashboardStats> {
@@ -171,6 +191,15 @@ class AuthService {
             body: JSON.stringify({ content }),
         });
         return response.comment;
+    }
+
+    // AI Generation
+    async generateTasks(projectId: string, prompt: string): Promise<any[]> {
+        const response = await this.request<any[]>(`/projects/${projectId}/ai/generate`, {
+            method: 'POST',
+            body: JSON.stringify({ prompt })
+        });
+        return response;
     }
 }
 

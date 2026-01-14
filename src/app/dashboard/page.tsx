@@ -55,7 +55,7 @@ export default function DashboardPage() {
         setProjectRole(project.userRole || null);
     } catch (error) {
         console.error("Failed to fetch project details for task view", error);
-        // Optionally show toast/error
+
     }
   };
 
@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
 
   // For List view, we show all sorted tasks. 
-  // For Kanban, we filter by current month.
+  // For List view, we show all sorted tasks.
   
   const tasksToDisplay = sortedTasks;
 
