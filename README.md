@@ -25,7 +25,7 @@ Clonez le projet dans votre répertoire de travail (ex: `htdocs` si vous utilise
 
 ### 1. Backend (API)
 
-Le backend gère la logique métier et la base de données.
+Le backend gère la logique métier et la base de données. Voici le repo : https://github.com/OpenClassrooms-Student-Center/dev-react-P10
 
 ```bash
 cd backend
