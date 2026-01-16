@@ -134,9 +134,8 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             </label>
             <Input 
                 id="title"
-                disabled={isContributor}
                 {...register("title", { required: "Le titre est requis" })}
-                className="bg-gray-50/50 border-gray-200 disabled:opacity-75 disabled:cursor-not-allowed"
+                className="bg-gray-50/50 border-gray-200"
             />
             {errors.title && <span className="text-red-500 text-xs">{errors.title.message}</span>}
         </div>
@@ -148,9 +147,8 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             </label>
             <Input 
                 id="description"
-                disabled={isContributor}
                 {...register("description")}
-                className="bg-gray-50/50 border-gray-200 disabled:opacity-75 disabled:cursor-not-allowed"
+                className="bg-gray-50/50 border-gray-200"
             />
         </div>
 
@@ -162,9 +160,8 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             <Input 
                 id="dueDate"
                 type="date"
-                disabled={isContributor}
                 {...register("dueDate")}
-                className="bg-gray-50/50 border-gray-200 disabled:opacity-75 disabled:cursor-not-allowed"
+                className="bg-gray-50/50 border-gray-200"
             />
         </div>
 
@@ -180,8 +177,7 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
                                 id={`edit-assignee-${member.user.id}`}
                                 checked={assigneeIds.includes(String(member.user.id))}
                                 onChange={() => toggleAssignee(String(member.user.id))}
-                                disabled={isContributor}
-                                className="rounded border-gray-300 text-black focus:ring-black disabled:opacity-50"
+                                className="rounded border-gray-300 text-black focus:ring-black"
                             />
                             <label htmlFor={`edit-assignee-${member.user.id}`} className="text-sm text-gray-700 cursor-pointer flex items-center gap-2">
                                 <div className="h-5 w-5 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">
@@ -202,11 +198,10 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
              <label className="text-sm font-medium text-foreground">
                 Statut :
             </label>
-            <div className={`flex items-center gap-3 ${isContributor ? 'opacity-70 pointer-events-none' : ''}`}>
+            <div className={`flex items-center gap-3`}>
                 <button
                     type="button"
                     onClick={() => setValue("status", "TODO")}
-                    disabled={isContributor}
                     className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                         currentStatus === 'TODO' 
                         ? "bg-pink-100 text-pink-700 ring-2 ring-pink-200" 
@@ -246,13 +241,12 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
              <label className="text-sm font-medium text-foreground">
                 Priorité :
             </label>
-            <div className={`flex flex-wrap items-center gap-2 ${isContributor ? 'opacity-70 pointer-events-none' : ''}`}>
+            <div className={`flex flex-wrap items-center gap-2`}>
                 {(['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const).map((p) => (
                     <button
                         key={p}
                         type="button"
                         onClick={() => setValue("priority", p)}
-                        disabled={isContributor}
                         className={`px-3 py-1 rounded-md text-xs font-bold border transition-all ${
                             watch("priority") === p
                             ? "bg-black text-white border-black" 
@@ -329,9 +323,9 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
             <Button 
                 type="submit" 
                 className="bg-[#e5e7eb] hover:bg-[#d1d5db] text-gray-800 font-medium px-6"
-                disabled={isLoading || isContributor}
+                disabled={isLoading}
             >
-                {isLoading ? "Enregistrement..." : isContributor ? "Lecture seule" : "Enregistrer"}
+                {isLoading ? "Enregistrement..." : "Enregistrer"}
             </Button>
         </div>
 

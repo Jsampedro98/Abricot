@@ -90,6 +90,17 @@ export function useRemoveContributor() {
     });
 }
 
+export function useUpdateContributorRole() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ projectId, userId, role }: { projectId: string; userId: string; role: 'ADMIN' | 'CONTRIBUTOR' }) =>
+            authService.updateContributorRole(projectId, userId, role),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT(variables.projectId) });
+        },
+    });
+}
+
 // --- Tasks ---
 
 export function useProjectTasks(projectId: string) {

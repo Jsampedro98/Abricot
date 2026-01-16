@@ -81,7 +81,7 @@ export default function ProjectDetailsPage() {
                <div>
                    <div className="flex items-center gap-3 mb-2">
                         <h2 className="text-2xl font-bold tracking-tight">{project.name}</h2>
-                        {user && project.owner && String(project.owner.id) === String(user.id) && (
+                        {user && (String(project.owner?.id) === String(user.id) || project.userRole === 'ADMIN') && (
                             <span 
                                 onClick={() => setIsEditModalOpen(true)}
                                 className="text-sm font-medium text-[#D95F18] cursor-pointer hover:underline"

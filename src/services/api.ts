@@ -147,6 +147,13 @@ class AuthService {
         });
     }
 
+    async updateContributorRole(projectId: string, userId: string, role: 'ADMIN' | 'CONTRIBUTOR'): Promise<void> {
+        await this.request(`/projects/${projectId}/contributors/${userId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ role }),
+        });
+    }
+
     async searchUsers(query: string): Promise<User[]> {
         const response = await this.request<{ users: User[] }>(`/users/search?query=${encodeURIComponent(query)}`);
         return response.users || [];

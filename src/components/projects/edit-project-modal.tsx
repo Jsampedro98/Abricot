@@ -8,7 +8,7 @@ import { Project } from "@/types";
 import { UserSearch } from "@/components/ui/user-search";
 import { User } from "@/types/auth";
 import { X } from "lucide-react";
-import { useUpdateProject, useAddContributor, useRemoveContributor } from "@/hooks/use-queries";
+import { useUpdateProject, useAddContributor, useRemoveContributor, useUpdateContributorRole } from "@/hooks/use-queries";
 
 interface EditProjectModalProps {
   isOpen: boolean;
@@ -29,9 +29,24 @@ export function EditProjectModal({ isOpen, onClose, project }: EditProjectModalP
       }
   });
 
+  const updateContributorRoleMutation = useUpdateContributorRole();
   const updateProjectMutation = useUpdateProject();
   const addContributorMutation = useAddContributor();
   const removeContributorMutation = useRemoveContributor();
+  const handleRemoveContributor = (userId: string | number) => {
+      removeContributorMutation.mutate({
+          projectId: project.id,
+          userId: String(userId)
+      });
+  };
+
+  const handleUpdateRole = (userId: string | number, newRole: 'ADMIN' | 'CONTRIBUTOR') => {
+    updateContributorRoleMutation.mutate({
+        projectId: project.id,
+        userId: String(userId),
+        role: newRole
+    });
+  };
 
   const onSubmit = (data: ProjectFormData) => {
     updateProjectMutation.mutate({
@@ -51,12 +66,7 @@ export function EditProjectModal({ isOpen, onClose, project }: EditProjectModalP
       });
   };
 
-  const handleRemoveContributor = (userId: string | number) => {
-      removeContributorMutation.mutate({
-          projectId: project.id,
-          userId: String(userId)
-      });
-  };
+
 
   const isLoading = updateProjectMutation.isPending || addContributorMutation.isPending || removeContributorMutation.isPending;
 
@@ -111,20 +121,35 @@ export function EditProjectModal({ isOpen, onClose, project }: EditProjectModalP
                 <div className="flex flex-wrap gap-2 mt-4">
                     {project.members && project.members.length > 0 ? (
                         project.members.map(member => (
-                            <div key={member.user.id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
-                                    <div className="h-4 w-4 rounded-full bg-gray-300 flex items-center justify-center text-[8px] font-bold text-gray-700">
-                                    {member.user.name?.substring(0, 1).toUpperCase()}
-                                </div>
-                                <span className="text-xs text-gray-700">{member.user.name || member.user.email}</span>
-                                {project.owner?.id !== member.user.id && (
-                                    <button 
-                                        onClick={() => handleRemoveContributor(member.user.id)} 
-                                        className="text-gray-400 hover:text-red-500"
-                                        disabled={removeContributorMutation.isPending}
-                                    >
-                                        <X className="h-3 w-3" />
-                                    </button>
-                                )}
+                            <div key={member.user.id} className="flex items-center gap-2 bg-gray-100 pl-2 pr-1 py-1 rounded-full border border-gray-200">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-700">
+                                            {member.user.name?.substring(0, 1).toUpperCase()}
+                                        </div>
+                                        <span className="text-xs text-gray-700 mr-1">{member.user.name || member.user.email}</span>
+                                    </div>
+                                    
+                                    {project.owner?.id !== member.user.id && (
+                                        <div className="flex items-center">
+                                            <select 
+                                                value={member.role || 'CONTRIBUTOR'}
+                                                onChange={(e) => handleUpdateRole(member.user.id, e.target.value as 'ADMIN' | 'CONTRIBUTOR')}
+                                                disabled={updateContributorRoleMutation.isPending}
+                                                className="h-6 text-[10px] bg-white border border-gray-300 rounded px-1 mr-2 focus:ring-1 focus:ring-black cursor-pointer"
+                                            >
+                                                <option value="CONTRIBUTOR">Contributeur</option>
+                                                <option value="ADMIN">Admin</option>
+                                            </select>
+                                            <button 
+                                                onClick={() => handleRemoveContributor(member.user.id)} 
+                                                className="text-gray-400 hover:text-red-500 p-0.5 hover:bg-red-50 rounded-full transition-colors"
+                                                disabled={removeContributorMutation.isPending}
+                                                title="Retirer du projet"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    )}
                             </div>
                         ))
                     ) : (
