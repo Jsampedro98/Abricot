@@ -21,7 +21,12 @@ export default function RegisterPage() {
     setAuthError(null);
     setIsLoading(true);
     try {
-      await registerUser({ email: data.email, password: data.password });
+      const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+      await registerUser({ 
+          email: data.email, 
+          password: data.password,
+          name: fullName 
+      });
     } catch (error: any) {
        console.error(error);
        setAuthError(error.message || "Erreur lors de l'inscription.");
@@ -38,6 +43,41 @@ export default function RegisterPage() {
             {authError}
           </div>
         )}
+
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                Prénom
+              </label>
+              <div className="mt-1">
+                <Input
+                  id="firstName"
+                  type="text"
+                  autoComplete="given-name"
+                  {...register("firstName", { required: true })}
+                  placeholder="John"
+                />
+                {errors.firstName && <span className="text-sm text-red-500">Requis</span>}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                Nom
+              </label>
+              <div className="mt-1">
+                <Input
+                  id="lastName"
+                  type="text"
+                  autoComplete="family-name"
+                  {...register("lastName", { required: true })}
+                  placeholder="Doe"
+                />
+                {errors.lastName && <span className="text-sm text-red-500">Requis</span>}
+              </div>
+            </div>
+        </div>
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
             Email
@@ -48,6 +88,7 @@ export default function RegisterPage() {
               type="email"
               autoComplete="email"
               {...register("email", { required: true })}
+              placeholder="john.doe@example.com"
             />
             {errors.email && <span className="text-sm text-red-500">Ce champ est requis</span>}
           </div>
@@ -65,6 +106,7 @@ export default function RegisterPage() {
                {...register("password", { required: true })}
             />
              {errors.password && <span className="text-sm text-red-500">Ce champ est requis</span>}
+             <p className="text-xs text-muted-foreground mt-1">Au moins 8 caractères, une majuscule, une minuscule et un chiffre.</p>
           </div>
         </div>
         
@@ -87,8 +129,8 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <Button type="submit" variant="secondary" className="w-full bg-[#1A1A1A] hover:bg-[#333] text-white py-6">
-            S'inscrire
+          <Button type="submit" variant="secondary" className="w-full bg-[#1A1A1A] hover:bg-[#333] text-white py-6" disabled={isLoading}>
+            {isLoading ? "Inscription..." : "S'inscrire"}
           </Button>
         </div>
         

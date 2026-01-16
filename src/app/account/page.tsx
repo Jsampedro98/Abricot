@@ -207,6 +207,9 @@ export default function AccountPage() {
                              Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.
                          </p>
                      )}
+                     {!passwordErrors.newPassword && (
+                         <p className="text-xs text-muted-foreground mt-1">Au moins 8 caractères, une majuscule, une minuscule et un chiffre.</p>
+                     )}
                 </div>
 
                 <div className="pt-2">

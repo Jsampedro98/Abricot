@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Project } from "@/types";
 import { UserSearch } from "@/components/ui/user-search";
 import { User } from "@/types/auth";
-import { X } from "lucide-react";
-import { useUpdateProject, useAddContributor, useRemoveContributor, useUpdateContributorRole } from "@/hooks/use-queries";
+import { X, Trash2 } from "lucide-react";
+import { useUpdateProject, useAddContributor, useRemoveContributor, useUpdateContributorRole, useDeleteProject } from "@/hooks/use-queries";
+import { useRouter } from "next/navigation";
 
 interface EditProjectModalProps {
   isOpen: boolean;
@@ -33,11 +34,26 @@ export function EditProjectModal({ isOpen, onClose, project }: EditProjectModalP
   const updateProjectMutation = useUpdateProject();
   const addContributorMutation = useAddContributor();
   const removeContributorMutation = useRemoveContributor();
+
+  const deleteProjectMutation = useDeleteProject();
+  const router = useRouter();
+
   const handleRemoveContributor = (userId: string | number) => {
       removeContributorMutation.mutate({
           projectId: project.id,
           userId: String(userId)
       });
+  };
+
+  const handleDeleteProject = () => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.")) {
+        deleteProjectMutation.mutate(project.id, {
+            onSuccess: () => {
+                onClose();
+                router.push("/dashboard");
+            }
+        });
+    }
   };
 
   const handleUpdateRole = (userId: string | number, newRole: 'ADMIN' | 'CONTRIBUTOR') => {
@@ -160,12 +176,21 @@ export function EditProjectModal({ isOpen, onClose, project }: EditProjectModalP
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2 flex justify-end">
+        <div className="pt-2 flex justify-between items-center">
+            <button 
+                type="button"
+                onClick={handleDeleteProject}
+                className="text-red-500 hover:text-red-700 text-sm flex items-center gap-2 px-2"
+                disabled={deleteProjectMutation.isPending}
+            >
+                <Trash2 className="h-4 w-4" /> Supprimer ce projet
+            </button>
+
             <Button 
                 form="update-project-form"
                 type="submit" 
                 className="bg-[#e5e7eb] hover:bg-[#d1d5db] text-gray-800 font-medium px-6"
-                disabled={isLoading}
+                disabled={isLoading || deleteProjectMutation.isPending}
             >
                 {isLoading ? "Enregistrement..." : "Enregistrer"}
             </Button>

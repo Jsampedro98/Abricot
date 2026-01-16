@@ -79,7 +79,10 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
         setValue("status", task.status);
         setValue("priority", task.priority);
         // Initialize assignees
-        setAssigneeIds(task.assignees?.map(a => a.user.id) ? task.assignees.map(a => String(a.user.id)) : []);
+        // Initialize assignees
+        const initialIds = task.assignees?.map(a => String(a.user.id)) || [];
+        console.log("EditTaskModal: Initializing assignees", { assignees: task.assignees, initialIds });
+        setAssigneeIds(initialIds);
     }
   }, [isOpen, task, setValue]);
 
