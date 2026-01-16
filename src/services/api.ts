@@ -201,8 +201,8 @@ class AuthService {
     }
 
     // AI Generation
-    async generateTasks(projectId: string, prompt: string): Promise<any[]> {
-        const response = await this.request<any[]>(`/projects/${projectId}/ai/generate`, {
+    async generateTasks(projectId: string, prompt: string): Promise<unknown[]> {
+        const response = await this.request<unknown[]>(`/projects/${projectId}/ai/generate`, {
             method: 'POST',
             body: JSON.stringify({ prompt })
         });

@@ -22,7 +22,7 @@ interface PasswordFormData {
 }
 
 export default function AccountPage() {
-  const { user, isLoading, login } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -33,7 +33,7 @@ export default function AccountPage() {
       register: registerProfile, 
       handleSubmit: handleSubmitProfile, 
       setValue: setProfileValue,
-      formState: { errors: profileErrors } 
+      formState: { errors: {} } 
   } = useForm<ProfileFormData>();
 
   // Password Form
@@ -98,9 +98,13 @@ export default function AccountPage() {
         alert("Mot de passe mis à jour avec succès !");
         resetPassword();
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Failed to update password", error);
-        alert(error.message || "Erreur lors de la mise à jour du mot de passe.");
+        if (error instanceof Error) {
+             alert(error.message);
+        } else {
+             alert("Erreur lors de la mise à jour du mot de passe.");
+        }
     } finally {
         setIsSavingPassword(false);
     }

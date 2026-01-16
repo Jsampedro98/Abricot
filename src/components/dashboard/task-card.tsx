@@ -2,7 +2,6 @@
 
 import { Task } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Calendar, MessageSquare, Folder } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";

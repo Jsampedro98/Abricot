@@ -10,14 +10,14 @@ import { useAuth } from "@/context/auth-context";
 import { useState } from "react";
 
 export default function RegisterPage() {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<{ firstName: string; lastName: string; email: string; password: string; confirmPassword: string }>();
   const { register: registerUser } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
   const password = watch("password");
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: { firstName: string; lastName: string; email: string; password: string }) => {
     setAuthError(null);
     setIsLoading(true);
     try {
@@ -27,9 +27,13 @@ export default function RegisterPage() {
           password: data.password,
           name: fullName 
       });
-    } catch (error: any) {
+    } catch (error) {
        console.error(error);
-       setAuthError(error.message || "Erreur lors de l'inscription.");
+       if (error instanceof Error) {
+         setAuthError(error.message);
+       } else {
+         setAuthError("Erreur lors de l'inscription.");
+       }
     } finally {
         setIsLoading(false);
     }

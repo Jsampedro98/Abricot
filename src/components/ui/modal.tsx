@@ -16,9 +16,11 @@ interface ModalProps {
 export function Modal({ isOpen, onClose, children, title, className }: ModalProps) {
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
+  /* useEffect(() => {
     setMounted(true);
-    
+  }, []); */
+
+  useEffect(() => {
     // Prevent scrolling when modal is open
     if (isOpen) {
       document.body.style.overflow = "hidden";

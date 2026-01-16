@@ -2,8 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/api';
-import { LoginPayload, RegisterPayload, User } from '@/types/auth';
-import { Project, Task } from '@/types';
 
 // Keys
 export const QUERY_KEYS = {
@@ -114,7 +112,7 @@ export function useProjectTasks(projectId: string) {
 export function useCreateTask() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ projectId, data }: { projectId: string; data: any }) =>
+        mutationFn: ({ projectId, data }: { projectId: string; data: { title: string; description?: string; priority?: string; dueDate?: string; assigneeIds?: string[]; status?: string } }) =>
             authService.createTask(projectId, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(variables.projectId) });
@@ -128,7 +126,7 @@ export function useCreateTask() {
 export function useUpdateTask() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ projectId, taskId, data }: { projectId: string; taskId: string; data: any }) =>
+        mutationFn: ({ projectId, taskId, data }: { projectId: string; taskId: string; data: { title?: string; description?: string; status?: string; priority?: string; dueDate?: string; assigneeIds?: string[] } }) =>
             authService.updateTask(projectId, taskId, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(variables.projectId) });

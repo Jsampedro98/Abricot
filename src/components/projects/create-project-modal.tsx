@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { authService } from "@/services/api";
 import { useState } from "react";
 import { UserSearch } from "@/components/ui/user-search";
 import { User } from "@/types/auth";

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProjectMember, Task, TaskStatus, TaskPriority } from "@/types";
 import { useState, useEffect } from "react";
-import { authService } from "@/services/api";
 import { Trash2, Send } from "lucide-react";
 import { useUpdateTask, useDeleteTask, useTaskComments, useAddComment } from "@/hooks/use-queries";
 
@@ -53,7 +52,7 @@ export function EditTaskModal({ isOpen, onClose, task, projectId, projectMembers
   const [newComment, setNewComment] = useState("");
   const currentStatus = watch("status");
   
-  const { data: comments = [], isLoading: isCommentsLoading } = useTaskComments(projectId, task.id);
+  const { data: comments = [] } = useTaskComments(projectId, task.id);
   const addCommentMutation = useAddComment();
 
   const handleAddComment = (e: React.FormEvent) => {

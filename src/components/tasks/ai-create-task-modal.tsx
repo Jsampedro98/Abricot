@@ -4,7 +4,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Sparkles, Trash2, Pencil, Plus, Calendar, User } from "lucide-react";
+import { Sparkles, Trash2, Pencil, Plus } from "lucide-react";
 
 import { useCreateTask, useGenerateTasks, useProject } from "@/hooks/use-queries";
 import { TaskPriority, TaskStatus } from "@/types";
@@ -69,12 +69,13 @@ export function AICreateTaskModal({ isOpen, onClose, projectId }: AICreateTaskMo
     setIsLoading(true);
     
     try {
-        const tasks = await generateTasksMutation.mutateAsync({ projectId, prompt });
+        const result = await generateTasksMutation.mutateAsync({ projectId, prompt });
+        const tasks = result as { title: string; description: string; priority?: string; status?: string; dueDate?: string; assigneeName?: string }[];
 
-        const mappedTasks = tasks.map((t: any, index: number) => {
+        const mappedTasks = tasks.map((t, index: number) => {
             // Mapping des tâches générées : Tentative de faire correspondre les noms d'assignés
             // avec les membres du projet existants (Best-effort matching)
-            let assigneeIds: string[] = [];
+            const assigneeIds: string[] = [];
             if (t.assigneeName && project?.members) {
                  const nameToMatch = t.assigneeName.toLowerCase();
                  const found = project.members.find(c => 

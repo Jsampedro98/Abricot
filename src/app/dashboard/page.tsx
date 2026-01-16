@@ -8,9 +8,9 @@ import { Task } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/components/dashboard/task-card";
-import { CheckSquare, Calendar, Plus, Search, Folder } from "lucide-react";
+import { CheckSquare, Calendar, Plus, Search } from "lucide-react";
 import { CreateProjectModal } from "@/components/projects/create-project-modal";
-import { useDashboardStats, useAssignedTasks, useUpdateTask } from "@/hooks/use-queries";
+import { useAssignedTasks, useUpdateTask, useDashboardStats } from "@/hooks/use-queries";
 import { ProjectMember } from "@/types";
 import { EditTaskModal } from "@/components/tasks/edit-task-modal";
 import { authService } from "@/services/api";
@@ -27,8 +27,8 @@ export default function DashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
-  const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
   const { data: tasks = [], isLoading: isTasksLoading } = useAssignedTasks();
+  const { isLoading: isStatsLoading } = useDashboardStats(); // Keep hook if needed for caching/prefetching, but stats is unused
 
   const [activeTab, setActiveTab] = useState<"list" | "kanban">("list");
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);

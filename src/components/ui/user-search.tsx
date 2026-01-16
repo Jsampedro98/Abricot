@@ -5,7 +5,6 @@ import { User } from "@/types/auth";
 import { authService } from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, User as UserIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface UserSearchProps {
   onSelect: (user: User) => void;
@@ -31,6 +30,7 @@ export function UserSearch({ onSelect, excludeUserIds = [], placeholder = "Reche
     }, 300);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   // Click outside to close results

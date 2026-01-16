@@ -6,7 +6,7 @@ interface DashboardLayoutProps {
   title?: string;
 }
 
-export function DashboardLayout({ children, title }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-[#f9fafb] font-sans">
       <Header />

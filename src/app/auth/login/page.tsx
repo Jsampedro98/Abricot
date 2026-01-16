@@ -9,19 +9,23 @@ import { useAuth } from "@/context/auth-context";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm<{ email: string; password: string }>();
   const { login } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: { email: string; password: string }) => {
     setAuthError(null);
     setIsLoading(true);
     try {
       await login({ email: data.email, password: data.password });
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      setAuthError(error.message || "Erreur lors de la connexion. Vérifiez vos identifiants.");
+      if (error instanceof Error) {
+        setAuthError(error.message);
+      } else {
+        setAuthError("Erreur lors de la connexion. Vérifiez vos identifiants.");
+      }
     } finally {
         setIsLoading(false);
     }
@@ -66,8 +70,8 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <Button type="submit" variant="secondary" className="w-full bg-[#1A1A1A] hover:bg-[#333] text-white py-6">
-            Se connecter
+          <Button type="submit" variant="secondary" className="w-full bg-[#1A1A1A] hover:bg-[#333] text-white py-6" disabled={isLoading}>
+            {isLoading ? "Connexion..." : "Se connecter"}
           </Button>
         </div>
         

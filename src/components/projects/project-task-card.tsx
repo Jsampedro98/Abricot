@@ -3,7 +3,7 @@
 import { Task, TaskStatus } from "@/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { MoreHorizontal, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { MoreHorizontal, Calendar, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ProjectTaskCardProps {

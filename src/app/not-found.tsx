@@ -12,7 +12,7 @@ export default function NotFound() {
         <div className="-mt-16 relative z-10 space-y-4">
           <h2 className="text-3xl font-bold text-foreground">Page introuvable</h2>
           <p className="text-muted-foreground">
-            Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+            Désolé, la page que vous recherchez n&apos;existe pas ou a été déplacée.
           </p>
           <div className="pt-4">
             <Link href="/dashboard">

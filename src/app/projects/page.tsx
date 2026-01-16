@@ -4,8 +4,6 @@ import { useAuth } from "@/context/auth-context";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/api";
-import { Project } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -19,7 +17,7 @@ export default function ProjectsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   const { data: projects = [], isLoading: isProjectsLoading } = useProjects();
-  const { data: tasks = [], isLoading: isTasksLoading } = useAssignedTasks();
+  const { data: tasks = [] } = useAssignedTasks();
 
   // Calculate Urgency Scores
   const projectsWithScore = projects.map(project => {
